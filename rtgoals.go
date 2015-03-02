@@ -41,10 +41,10 @@ func main() {
 	hasWeeklyGoals := false
 
 	for _, goal := range configuration.Goals {
-		if goal.TimeWindow == "day" {
+		if goal.TimeWindow == DAILY {
 			hasDailyGoals = true
 		}
-		if goal.TimeWindow == "week" {
+		if goal.TimeWindow == WEEKLY {
 			hasWeeklyGoals = true
 		}
 	}
@@ -57,12 +57,12 @@ func main() {
 	}
 }
 
-func computeGoals(configuration *config.Config, timeFrame string) {
+func computeGoals(configuration *config.Config, timeWindow string) {
 	now := time.Now()
 	var startTime string
 	var endTime string
 
-	if timeFrame == DAILY {
+	if timeWindow == DAILY {
 		startTime = now.Format(TIME_FORMAT)
 		endTime = now.Add(24 * time.Hour).Format(TIME_FORMAT)
 	} else {
@@ -89,8 +89,14 @@ func computeGoals(configuration *config.Config, timeFrame string) {
 		}
 	}
 
-	printGoalProgress(timeFrame, totalProductiveSeconds, configuration.Goals[0])
-	printGoalProgress(timeFrame, totalUnproductiveSeconds, configuration.Goals[1])
+	goals := configuration.GoalsForTimeWindow(timeWindow)
+	for _, goal := range goals {
+		if goal.Type == "Productive" {
+			printGoalProgress(timeWindow, totalProductiveSeconds, goal)
+		} else {
+			printGoalProgress(timeWindow, totalUnproductiveSeconds, goal)
+		}
+	}
 }
 
 func getRescueTimeData(startTime, endTime, apiKey string) *rtData {

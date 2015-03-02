@@ -60,3 +60,13 @@ func validateConfig(config *Config) error {
 
 	return nil
 }
+
+func (c *Config) GoalsForTimeWindow(timewindow string) []*Goal {
+	goals := make([]*Goal, 0, 0)
+	for _, goal := range c.Goals {
+		if goal.TimeWindow == timewindow {
+			goals = append(goals, goal)
+		}
+	}
+	return goals
+}

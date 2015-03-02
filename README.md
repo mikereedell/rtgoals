@@ -1,4 +1,4 @@
-#RTGoals
+    #RTGoals
 Command line client for tracking RescueTime productivity goals, written in Go.
 
 ##Installation
@@ -20,22 +20,22 @@ To get rtgoals working:
     "Goals": [
              {
                 "Type": "Productive",
-                "TimeWindow": "day",
+                "TimeWindow": "Daily",
                 "GoalTime": "4h"
              },
              {
                 "Type": "Unproductive",
-                "TimeWindow": "day",
+                "TimeWindow": "Daily",
                 "GoalTime": "1h15m"
              },
              {
                 "Type": "Productive",
-                "TimeWindow": "week",
+                "TimeWindow": "Weekly",
                 "GoalTime": "20h"
              },
              {
                 "Type": "Unproductive",
-                "TimeWindow": "week",
+                "TimeWindow": "Weekly",
                 "GoalTime": "6h15m"
              }
     ]
@@ -44,7 +44,9 @@ To get rtgoals working:
 ##Usage
 
 	--$ rtgoals
-	Productive time: 2h21m26s (58.93% of goal)
-	Unproductive time: 29m1s (38.69% of goal)
+    Daily Productive time: 3h36m23s (90.16% of goal)
+    Daily Unproductive time: 50m50s (67.78% of goal)
+    Weekly Productive time: 3h36m23s (18.03% of goal)
+    Weekly Uproductive time: 50m50s (13.56% of goal)
 
 
