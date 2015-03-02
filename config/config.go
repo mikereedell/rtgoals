@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	ApiKey string
-	Goals  []Goal
+	Goals  []*Goal
 }
 
 type Goal struct {

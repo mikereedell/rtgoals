@@ -10,6 +10,13 @@ import (
 	"github.com/mikereedell/rtgoals/config"
 )
 
+const (
+	RT_API_BASE_URL = "https://www.rescuetime.com/anapi/data?key=%s&format=json&pv=member&rk=productivity&rb=%s&re=%s"
+	TIME_FORMAT     = "2006-01-02"
+	WEEKLY          = "Weekly"
+	DAILY           = "Daily"
+)
+
 type rtData struct {
 	Notes      string          `json:"notes"`
 	RowHeaders []string        `json:"row_headers"`
@@ -30,28 +37,48 @@ func readConfig() *config.Config {
 func main() {
 	configuration := readConfig()
 
+	hasDailyGoals := false
+	hasWeeklyGoals := false
+
+	for _, goal := range configuration.Goals {
+		if goal.TimeWindow == "day" {
+			hasDailyGoals = true
+		}
+		if goal.TimeWindow == "week" {
+			hasWeeklyGoals = true
+		}
+	}
+	if hasDailyGoals {
+		computeGoals(configuration, DAILY)
+	}
+
+	if hasWeeklyGoals {
+		computeGoals(configuration, WEEKLY)
+	}
+}
+
+func computeGoals(configuration *config.Config, timeFrame string) {
 	now := time.Now()
-	timeFormat := "2006-01-02"
-	startTime := now.Format(timeFormat)
-	endTime := now.Add(24 * time.Hour).Format(timeFormat)
+	var startTime string
+	var endTime string
 
-	baseURL := "https://www.rescuetime.com/anapi/data?key=%s&format=json&pv=member&rk=productivity&rb=%s&re=%s"
-	response, err := http.Get(fmt.Sprintf(baseURL, configuration.ApiKey, startTime, endTime))
-	if err != nil {
-		fmt.Printf("Error calling RescueTime API: %v\n", err)
+	if timeFrame == DAILY {
+		startTime = now.Format(TIME_FORMAT)
+		endTime = now.Add(24 * time.Hour).Format(TIME_FORMAT)
+	} else {
+		hoursToSubtract := 0 - (int(now.Weekday())-1)*24
+		startTime = now.Add(time.Duration(hoursToSubtract) * time.Hour).Format(TIME_FORMAT)
+
+		hoursToAdd := (6 - int(now.Weekday())) * 24
+		endTime = now.Add(time.Duration(hoursToAdd) * time.Hour).Format(TIME_FORMAT)
 	}
 
-	decoder := json.NewDecoder(response.Body)
-	rtData := &rtData{}
-
-	if err = decoder.Decode(&rtData); err != nil {
-		fmt.Printf("Unable to decode RescueTime JSON data: %v\n", err)
-	}
+	data := getRescueTimeData(startTime, endTime, configuration.ApiKey)
 
 	totalProductiveSeconds := 0
 	totalUnproductiveSeconds := 0
 
-	for _, row := range rtData.Rows {
+	for _, row := range data.Rows {
 		seconds := int(row[1].(float64))
 		productivity := int(row[2].(float64))
 		if productivity > 0 {
@@ -62,14 +89,29 @@ func main() {
 		}
 	}
 
-	printProgress(totalProductiveSeconds, configuration.Goals[0])
-	printProgress(totalUnproductiveSeconds, configuration.Goals[1])
+	printGoalProgress(timeFrame, totalProductiveSeconds, configuration.Goals[0])
+	printGoalProgress(timeFrame, totalUnproductiveSeconds, configuration.Goals[1])
 }
 
-func printProgress(seconds int, goal config.Goal) {
+func getRescueTimeData(startTime, endTime, apiKey string) *rtData {
+	response, err := http.Get(fmt.Sprintf(RT_API_BASE_URL, apiKey, startTime, endTime))
+	if err != nil {
+		fmt.Printf("Error calling RescueTime API: %v\n", err)
+	}
+
+	decoder := json.NewDecoder(response.Body)
+	rtData := &rtData{}
+
+	if err = decoder.Decode(&rtData); err != nil {
+		fmt.Printf("Unable to decode RescueTime JSON data: %v\n", err)
+	}
+	return rtData
+}
+
+func printGoalProgress(timeFrame string, seconds int, goal *config.Goal) {
 	goalDuration, _ := time.ParseDuration(fmt.Sprintf("%s", goal.GoalTime))
 
 	time, _ := time.ParseDuration(fmt.Sprintf("%ds", seconds))
 	percentage := (float64(time) / float64(goalDuration)) * float64(100)
-	fmt.Printf("%s time: %s (%4.2f%% of goal)\n", goal.Type, time.String(), percentage)
+	fmt.Printf("%s %s time: %s (%4.2f%% of goal)\n", timeFrame, goal.Type, time.String(), percentage)
 }

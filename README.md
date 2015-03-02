@@ -14,7 +14,6 @@ To get rtgoals working:
 1. Go to https://www.rescuetime.com/anapi/manage to create an API key for your RescueTime account.
 2. Copy the below .rtgoals template to ~/.rtgoals.
 3. Edit ~/.rtgoals, copying your API key into the "ApiKey" field.
-4. Currently rtgoals only supports the "day" TimeWindow.  Weekly goal tracking will be added soon.
 
 	{
     "ApiKey": "$YOUR_RT_API_KEY",
@@ -28,6 +27,16 @@ To get rtgoals working:
                 "Type": "Unproductive",
                 "TimeWindow": "day",
                 "GoalTime": "1h15m"
+             },
+             {
+                "Type": "Productive",
+                "TimeWindow": "week",
+                "GoalTime": "20h"
+             },
+             {
+                "Type": "Unproductive",
+                "TimeWindow": "week",
+                "GoalTime": "6h15m"
              }
     ]
 }
