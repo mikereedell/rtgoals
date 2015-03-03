@@ -1,4 +1,4 @@
-    #RTGoals
+#RTGoals
 Command line client for tracking RescueTime productivity goals, written in Go.
 
 ##Installation
